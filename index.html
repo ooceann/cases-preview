@@ -3,49 +3,75 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>XMind 用例预览</title>
+<title>XMind 测试用例列表</title>
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{padding:15px;background:#f6f7f9;font-family:Arial}
-  .panel{margin-bottom:15px}
-  select{padding:8px 12px;width:100%;max-width:400px;border-radius:6px;border:1px solid #ccc}
-  #preview{margin-top:10px;background:white;padding:10px;border-radius:8px}
-  #preview svg{width:100%;height:auto}
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Microsoft YaHei", sans-serif;
+  }
+  body {
+    background: #f6f7f9;
+    padding: 30px;
+  }
+  .container {
+    max-width: 700px;
+    margin: 0 auto;
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  }
+  h2 {
+    margin-bottom: 20px;
+    color: #333;
+  }
+  .case-item {
+    padding: 12px 16px;
+    margin: 8px 0;
+    background: #f8f9fa;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .case-name {
+    font-size: 15px;
+    color: #222;
+  }
+  .download-btn {
+    padding: 6px 12px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: none;
+  }
+  .download-btn:hover {
+    background: #0066dd;
+  }
 </style>
 </head>
 <body>
 
-<div class="panel">
-  <select id="fileSelect">
-    <option value="">-- 选择用例 --</option>
-    <!-- 这里放你导出的 SVG 文件 -->
-    <option value="testcases/登录.svg">登录模块</option>
-    <option value="testcases/支付.svg">支付模块</option>
-  </select>
+<div class="container">
+  <h2>XMind 测试用例列表</h2>
+
+  <div class="case-item">
+    <div class="case-name">登录模块</div>
+    <a class="download-btn" href="testcases/登录模块.xmind" download>打开 / 下载</a>
+  </div>
+
+  <div class="case-item">
+    <div class="case-name">支付模块</div>
+    <a class="download-btn" href="testcases/支付模块.xmind" download>打开 / 下载</a>
+  </div>
+
+  <!-- 继续加更多用例 -->
 </div>
-
-<div id="preview"></div>
-
-<script>
-const preview = document.getElementById('preview');
-const select = document.getElementById('fileSelect');
-
-select.addEventListener('change', async () => {
-  const path = select.value;
-  if (!path) {
-    preview.innerHTML = '';
-    return;
-  }
-
-  try {
-    const resp = await fetch(path);
-    const text = await resp.text();
-    preview.innerHTML = text;
-  } catch (e) {
-    preview.innerHTML = '加载失败';
-  }
-});
-</script>
 
 </body>
 </html>
