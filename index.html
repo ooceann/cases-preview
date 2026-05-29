@@ -3,63 +3,64 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>测试用例XMind预览</title>
-<!-- 仅引入jszip，唯一外部CDN，国内jsDelivr稳定 -->
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<title>XMind 测试用例</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-.top-bar{padding:12px 20px;border-bottom:1px solid #eee}
-#fileSel{padding:5px 10px;width:320px}
-#mapWrap{width:100vw;height:calc(100vh - 52px);overflow:auto;padding:20px}
-.item{margin:4px 0;padding:3px 8px;border-left:3px solid #409eff}
-.root{font-weight:bold;font-size:18px;border-left-color:#f56c6c}
+  *{margin:0;padding:0;box-sizing:border-box;font-family: "Microsoft YaHei", sans-serif;}
+  body{background:#f6f7f9;padding:10px;}
+  .title{font-size:18px;margin-bottom:10px;color:#333;}
+  .select{padding:8px 12px;width:100%;max-width:400px;margin-bottom:16px;border:1px solid #ddd;border-radius:6px;}
+  .tree{line-height:1.6;background:white;padding:16px 20px;border-radius:8px;}
+  .node{margin:4px 0;padding-left:12px;border-left:2px solid #ddd;}
+  .root{font-weight:bold;color:#c0392b;border-left:2px solid #e74c3c;}
+  .level1{margin-left:16px;color:#2980b9;}
+  .level2{margin-left:32px;color:#34495e;}
+  .level3{margin-left:48px;color:#7f8c8d;}
 </style>
 </head>
 <body>
-<div class="top-bar">
-  <select id="fileSel">
-    <option value="">--选择用例文件--</option>
-    <option value="testcases/登录模块.xmind">登录模块</option>
-    <option value="testcases/支付模块.xmind">支付模块</option>
-  </select>
-</div>
-<div id="mapWrap" id="viewBox"></div>
 
+<div class="title">XMind 测试用例预览</div>
+<select class="select" id="selector">
+  <option value="">-- 请选择用例 --</option>
+  <option value="testcases/登录.xmind">登录模块</option>
+  <option value="testcases/支付.xmind">支付模块</option>
+</select>
+<div class="tree" id="container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
-const wrap = document.getElementById('mapWrap');
-const sel = document.getElementById('fileSel');
+const container = document.getElementById('container');
+const selector = document.getElementById('selector');
 
-// 解析xmind压缩包、读取content.json，纯前端本地解析
-async function parseXmind(url){
-  wrap.innerHTML = '加载中...';
-  const res = await fetch(url);
-  const buf = await res.arrayBuffer();
-  const zip = await JSZip.loadAsync(buf);
-  let contentJson = null;
-  // 新版XMind content.json、老版content.xml兼容
-  if(zip.files['content.json']){
-    const raw = await zip.file('content.json').async('string');
-    contentJson = JSON.parse(raw);
-  }else{
-    wrap.innerHTML = '旧版XMind(xml格式)暂不支持';
-    return;
-  }
-  // 递归渲染树形
-  function renderTree(node,level=0){
-    let html = `<div class="item ${level===0?'root':''}" style="padding-left:${level*16}px">${node.title}</div>`;
-    if(node.children && node.children.length){
-      node.children.forEach(child=>html+=renderTree(child,level+1));
+selector.onchange = async () => {
+  const file = selector.value;
+  if (!file) return;
+  container.innerHTML = "加载中...";
+
+  try {
+    const res = await fetch(file);
+    const buf = await res.arrayBuffer();
+    const zip = await JSZip.loadAsync(buf);
+    const content = await zip.file("content.json").async("string");
+    const data = JSON.parse(content);
+
+    function render(node, level = 0) {
+      const cls = level === 0 ? 'root' : `level${level}`;
+      let html = `<div class="node ${cls}">${node.title || ''}</div>`;
+      if (node.children) {
+        node.children.forEach(child => {
+          html += render(child, level + 1);
+        });
+      }
+      return html;
     }
-    return html;
-  }
-  wrap.innerHTML = renderTree(contentJson.rootTopic);
-}
 
-sel.onchange = e=>{
-  const path = e.target.value;
-  if(path) parseXmind(path);
-  else wrap.innerHTML='';
-}
+    container.innerHTML = render(data.rootTopic);
+  } catch (e) {
+    container.innerHTML = "无法解析 XMind 文件";
+    console.error(e);
+  }
+};
 </script>
 </body>
 </html>
