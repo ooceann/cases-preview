@@ -3,40 +3,63 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>XMind用例预览</title>
-<!-- 换成全球稳定jsdelivr，去掉国内region配置 -->
-<script src="https://cdn.jsdelivr.net/npm/xmind-embed-viewer@1.2.0/dist/umd/xmind-embed-viewer.js"></script>
+<title>测试用例XMind预览</title>
+<!-- 仅引入jszip，唯一外部CDN，国内jsDelivr稳定 -->
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-.toolbar{padding:14px 20px;background:#fff;border-bottom:1px solid #eee}
-#fileSelect{padding:6px 12px;width:340px;font-size:14px}
-#viewer{width:100vw;height:calc(100vh - 56px)}
+.top-bar{padding:12px 20px;border-bottom:1px solid #eee}
+#fileSel{padding:5px 10px;width:320px}
+#mapWrap{width:100vw;height:calc(100vh - 52px);overflow:auto;padding:20px}
+.item{margin:4px 0;padding:3px 8px;border-left:3px solid #409eff}
+.root{font-weight:bold;font-size:18px;border-left-color:#f56c6c}
 </style>
 </head>
 <body>
-<div class="toolbar">
-  <select id="fileSelect">
-    <option value="">-- 选择用例 --</option>
-    <!-- 按需修改文件名 -->
+<div class="top-bar">
+  <select id="fileSel">
+    <option value="">--选择用例文件--</option>
     <option value="testcases/登录模块.xmind">登录模块</option>
     <option value="testcases/支付模块.xmind">支付模块</option>
   </select>
 </div>
-<div id="viewer"></div>
+<div id="mapWrap" id="viewBox"></div>
 
 <script>
-const viewer = new XMindEmbedViewer({
-  el: "#viewer",
-  theme: "light"
-  // 【关键】删除 region:"cn"，不再请求xmind.cn资源
-});
+const wrap = document.getElementById('mapWrap');
+const sel = document.getElementById('fileSel');
 
-document.getElementById("fileSelect").addEventListener("change", async e => {
+// 解析xmind压缩包、读取content.json，纯前端本地解析
+async function parseXmind(url){
+  wrap.innerHTML = '加载中...';
+  const res = await fetch(url);
+  const buf = await res.arrayBuffer();
+  const zip = await JSZip.loadAsync(buf);
+  let contentJson = null;
+  // 新版XMind content.json、老版content.xml兼容
+  if(zip.files['content.json']){
+    const raw = await zip.file('content.json').async('string');
+    contentJson = JSON.parse(raw);
+  }else{
+    wrap.innerHTML = '旧版XMind(xml格式)暂不支持';
+    return;
+  }
+  // 递归渲染树形
+  function renderTree(node,level=0){
+    let html = `<div class="item ${level===0?'root':''}" style="padding-left:${level*16}px">${node.title}</div>`;
+    if(node.children && node.children.length){
+      node.children.forEach(child=>html+=renderTree(child,level+1));
+    }
+    return html;
+  }
+  wrap.innerHTML = renderTree(contentJson.rootTopic);
+}
+
+sel.onchange = e=>{
   const path = e.target.value;
-  if (!path) return;
-  const buffer = await (await fetch(path)).arrayBuffer();
-  viewer.load(buffer);
-});
+  if(path) parseXmind(path);
+  else wrap.innerHTML='';
+}
 </script>
 </body>
 </html>
