@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>XMind 测试用例预览</title>
+<title>XMind用例预览</title>
+<!-- 换成全球稳定jsdelivr，去掉国内region配置 -->
 <script src="https://cdn.jsdelivr.net/npm/xmind-embed-viewer@1.2.0/dist/umd/xmind-embed-viewer.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -16,7 +17,7 @@
 <div class="toolbar">
   <select id="fileSelect">
     <option value="">-- 选择用例 --</option>
-    <!-- 在这里加你的 xmind 文件 -->
+    <!-- 按需修改文件名 -->
     <option value="testcases/登录模块.xmind">登录模块</option>
     <option value="testcases/支付模块.xmind">支付模块</option>
   </select>
@@ -26,8 +27,8 @@
 <script>
 const viewer = new XMindEmbedViewer({
   el: "#viewer",
-  theme: "light",
-  region: "cn"
+  theme: "light"
+  // 【关键】删除 region:"cn"，不再请求xmind.cn资源
 });
 
 document.getElementById("fileSelect").addEventListener("change", async e => {
